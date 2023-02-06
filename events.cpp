@@ -8,7 +8,7 @@ enum {
 	RoadSide
 };
 
-void driveEvents(SDL_Event* event, struct game* game, struct switches* switches, bool state[5], double* penalty, int *gameCounter) {
+void driveEvents(SDL_Event* event, struct game* game, struct switches* switches, bool state[5], double* penalty) {
 	while (SDL_PollEvent(event)) {
 		switch (event->type) {
 		case SDL_KEYDOWN:
@@ -34,7 +34,6 @@ void driveEvents(SDL_Event* event, struct game* game, struct switches* switches,
 			else if (event->key.keysym.sym == SDLK_f) {
 				switches->pause = false;
 				switches->finish = true;
-				*gameCounter += 1;
 			}
 			else if (event->key.keysym.sym == SDLK_s) switches->save = true;
 			else if (event->key.keysym.sym == SDLK_l) switches->load = true;

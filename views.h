@@ -1,10 +1,10 @@
 #pragma once
 #include "functions.h"
 
-void drawView(SDL_Surface* screen, SDL_Surface* player, SDL_Surface* charset, int plansza[MAP_HEIGHT][MAP_WIDTH], int fps, struct game* game, struct colors* colors, int gameCounter);
+void drawView(struct surfaces *surfaces, int plansza[MAP_HEIGHT][MAP_WIDTH], int fps, int delay, struct game* game, struct colors* colors, struct powerup *power);
 
-void finishView(SDL_Surface* screen, SDL_Surface* charset, int score, struct colors* colors, struct coords* coords);
+void finishView(struct surfaces* surfaces, int score, struct colors* colors, struct coords* coords);
 
-void saveLoadView(SDL_Surface* screen, SDL_Surface* charset, SDL_Surface* saveNload, struct colors* colors, struct toFile* toFile, struct coords* coords, SDL_Event* event);
+void saveLoadView(struct surfaces* surfaces, struct colors* colors, struct toFile* toFile, struct coords* coords, SDL_Event* event);
 
-void rankingView(SDL_Surface* screen, SDL_Surface* ranking, SDL_Surface* charset, struct colors* colors, int* sort, double* lista, int sizeOfRanking, int* scroll);
+void rankingView(struct surfaces* surfaces, struct colors* colors, int* sort, double* lista, int sizeOfRanking, int* scroll);

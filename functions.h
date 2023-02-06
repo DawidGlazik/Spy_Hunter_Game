@@ -42,6 +42,7 @@ struct game {
 	double distance;
 	double temp;
 	int lives;
+	int gun;	//1-pistol, 2-rifle, 3-sniper
 };
 //cursor position
 struct coords {
@@ -58,6 +59,37 @@ struct switches {
 	bool ranking;
 };
 
+struct powerup {
+	bool onmap;
+	int x;
+	int y;
+};
+
+struct surfaces {
+	SDL_Surface* screen;
+	SDL_Surface* charset;
+	SDL_Surface* player;
+	SDL_Surface* pauza;
+	SDL_Surface* saveNload;
+	SDL_Surface* ranking;
+	SDL_Surface* powerUp;
+	SDL_Surface* pistol;
+	SDL_Surface* rifle;
+	SDL_Surface* sniper;
+	SDL_Surface* enemy;
+	SDL_Surface* civilian;
+	SDL_Surface* bullet;
+	SDL_Texture* scrtex;
+	SDL_Window* window;
+	SDL_Renderer* renderer;
+};
+
+struct bullet {
+	int x;
+	int y;
+	bool launched;
+};
+
 void DrawString(SDL_Surface* screen, int x, int y, const char* text, SDL_Surface* charset);
 
 void DrawSurface(SDL_Surface* screen, SDL_Surface* sprite, int x, int y);
@@ -72,35 +104,39 @@ void DrawRectangle(SDL_Surface* screen, int x, int y, int l, int k, Uint32 outli
 
 void startBoard(int plansza[MAP_HEIGHT][MAP_WIDTH]);	//initialize the map
 
-void mapMovement(struct game* game); //map scrolling
+void mapMovement(struct game* game, struct powerup *power); //map scrolling
 
-int loadPicture(SDL_Surface* any, SDL_Surface* screen, SDL_Texture* scrtex, SDL_Renderer* renderer, SDL_Window* window);
+int loadPicture(SDL_Surface* any, struct surfaces *surfaces);
 
-void endProgram(SDL_Surface* screen, SDL_Texture* scrtex, SDL_Renderer* renderer, SDL_Window* window);
+void endProgram(struct surfaces *surfaces);
 
-int checkCollision(SDL_Surface* screen, SDL_Texture* scrtex, SDL_Renderer* renderer, SDL_Window* window, SDL_Surface* player, struct game* game, bool* pause, bool state[5]);
+int checkCollision(struct surfaces *surfaces, struct game* game, bool* pause, bool state[5]);
 
-void refresh(SDL_Surface* screen, SDL_Texture* scrtex, SDL_Renderer* renderer);		//refresh the screen
+int checkPowerUp(double *delay, struct game* game, struct powerup* power);
 
-int initialize(SDL_Surface** screen, SDL_Texture** scrtex, SDL_Renderer** renderer, SDL_Window** window, struct colors* colors);
+void refresh(struct surfaces *surfaces);		//refresh the screen
+
+int initialize(struct surfaces *surfaces, struct colors* colors);
 
 void initColors(SDL_Surface* screen, struct colors* colors);
 
-void setBMPs(SDL_Surface* screen, SDL_Texture* scrtex, SDL_Renderer* renderer, SDL_Window* window, SDL_Surface** charset, SDL_Surface** pauza, SDL_Surface** saveNload, SDL_Surface** ranking);
+void setBMPs(struct surfaces* surfaces);
 
 void moving(struct game* game, bool state[5], double* speed);		//car movement
 
 void sortArray(double* lista, int sizeOfRanking, int option);
 
-void calculations(struct game* game, bool state[5], double* delta, double* fpsTimer, double* speed, double* penalty, int* fps, int* frames);
+void calculations(struct game* game, struct powerup* power, bool state[5], double* delta, double* fpsTimer, double* speed, double* penalty, int* fps, int* frames);
+
+void bullets(struct game* game);
 
 
 
-void saveFile(struct game* game, int option, struct toFile* toFile);	//save game
+void saveFile(const struct game* game, int option, struct toFile* toFile);	//save game
 
 void saveRankings(double* lista, int* sizeOfRanking);		//save ranking to file
 
-void UploadSavesList(struct toFile* toFile, int sizeOfRanking);		//save description of saves and size of ranking
+void UploadSavesList(const struct toFile* toFile, int sizeOfRanking);		//save description of saves and size of ranking
 
 void saveHRranking(double* lista, int* sizeOfRanking);	//saves human-readable ranking
 

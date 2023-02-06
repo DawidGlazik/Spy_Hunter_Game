@@ -73,8 +73,15 @@ void startBoard(int plansza[MAP_HEIGHT][MAP_WIDTH]) {
 	}
 }
 
-void mapMovement(struct game* game) {
+void mapMovement(struct game* game, struct powerup *power) {
 	int seed = rand() % 100;
+	int seed2 = rand() % 5000;
+	int seed3 = rand() % (SCREEN_WIDTH - 2 * game->plansza[3][1]);
+	if (seed % 2500 == 0 && !power->onmap) {
+		power->x = game->plansza[3][1] + seed3;
+		power->y = game->plansza[5][0];
+		power->onmap = true;
+	}
 	for (int i = MAP_HEIGHT - 2; i >= 0; i--) {
 		for (int j = 0; j < MAP_WIDTH; j++) {
 			game->plansza[i + 1][j] = game->plansza[i][j];
@@ -84,25 +91,39 @@ void mapMovement(struct game* game) {
 	else if (seed < 50 && game->plansza[1][1] < SCREEN_WIDTH * 2 / 5) game->plansza[0][1] = game->plansza[1][1] + GRASS_DIFF;
 	else game->plansza[0][1] = game->plansza[1][1];
 	game->temp = game->worldTime;
+	if (power->y + 24 < SCREEN_HEIGHT) power->y += 24;
+	else power->onmap = false;
 }
 
-int loadPicture(SDL_Surface* any, SDL_Surface* screen, SDL_Texture* scrtex, SDL_Renderer* renderer, SDL_Window* window) {
+int loadPicture(SDL_Surface* any, struct surfaces *surfaces) {
 	if (any == NULL) {
 		printf("SDL_LoadBMP() error: %s\n", SDL_GetError());
-		endProgram(screen, scrtex, renderer, window);
+		endProgram(surfaces);
 		return 1;
 	};
 }
 
-void endProgram(SDL_Surface* screen, SDL_Texture* scrtex, SDL_Renderer* renderer, SDL_Window* window) {
-	SDL_FreeSurface(screen);
-	SDL_DestroyTexture(scrtex);
-	SDL_DestroyRenderer(renderer);
-	SDL_DestroyWindow(window);
+void endProgram(struct surfaces *surfaces) {
+	SDL_FreeSurface(surfaces->screen);
+	SDL_FreeSurface(surfaces->charset);
+	SDL_FreeSurface(surfaces->pauza);
+	SDL_FreeSurface(surfaces->player);
+	SDL_FreeSurface(surfaces->ranking);
+	SDL_FreeSurface(surfaces->saveNload);
+	SDL_FreeSurface(surfaces->powerUp);
+	SDL_FreeSurface(surfaces->pistol);
+	SDL_FreeSurface(surfaces->rifle);
+	SDL_FreeSurface(surfaces->sniper);
+	SDL_FreeSurface(surfaces->enemy);
+	SDL_FreeSurface(surfaces->civilian);
+	SDL_FreeSurface(surfaces->bullet);
+	SDL_DestroyTexture(surfaces->scrtex);
+	SDL_DestroyRenderer(surfaces->renderer);
+	SDL_DestroyWindow(surfaces->window);
 	SDL_Quit();
 }
 
-void saveFile(struct game* game, int option, struct toFile* toFile) {
+void saveFile(const struct game* game, int option, struct toFile* toFile) {
 	char* str[30];
 	if (option == 1) *str = "zapisy/zapis1.bin";
 	else if (option == 2) *str = "zapisy/zapis2.bin";
@@ -126,7 +147,7 @@ void loadFile(struct game* game, int option) {
 	}
 }
 
-int checkCollision(SDL_Surface* screen, SDL_Texture* scrtex, SDL_Renderer* renderer, SDL_Window* window, SDL_Surface* player, struct game* game, bool* pause, bool state[5]) {
+int checkCollision(struct surfaces *surfaces, struct game* game, bool* pause, bool state[5]) {
 	for (int i = 0; i < 3; i++) {
 		int position = SCREEN_WIDTH / 2 + game->posX;
 		int grass = game->plansza[11 + i][1];
@@ -136,12 +157,12 @@ int checkCollision(SDL_Surface* screen, SDL_Texture* scrtex, SDL_Renderer* rende
 				return 0;
 			}
 			else {
-				player = SDL_LoadBMP("obrazy/car_bum.bmp");
-				loadPicture(player, screen, scrtex, renderer, window);
-				DrawSurface(screen, player, SCREEN_WIDTH / 2 + game->posX, SCREEN_HEIGHT / 3 * 2);
-				SDL_UpdateTexture(scrtex, NULL, screen->pixels, screen->pitch);
-				SDL_RenderCopy(renderer, scrtex, NULL, NULL);
-				SDL_RenderPresent(renderer);
+				surfaces->player = SDL_LoadBMP("obrazy/car_bum.bmp");
+				loadPicture(surfaces->player, surfaces);
+				DrawSurface(surfaces->screen, surfaces->player, SCREEN_WIDTH / 2 + game->posX, SCREEN_HEIGHT / 3 * 2);
+				SDL_UpdateTexture(surfaces->scrtex, NULL, surfaces->screen->pixels, surfaces->screen->pitch);
+				SDL_RenderCopy(surfaces->renderer, surfaces->scrtex, NULL, NULL);
+				SDL_RenderPresent(surfaces->renderer);
 				*pause = true;
 				SDL_Delay(2000);
 				game->posX = 0;
@@ -154,20 +175,45 @@ int checkCollision(SDL_Surface* screen, SDL_Texture* scrtex, SDL_Renderer* rende
 	return 0;
 }
 
-void refresh(SDL_Surface* screen, SDL_Texture* scrtex, SDL_Renderer* renderer) {
-	SDL_UpdateTexture(scrtex, NULL, screen->pixels, screen->pitch);
-	SDL_RenderCopy(renderer, scrtex, NULL, NULL);
-	SDL_RenderPresent(renderer);
+int checkPowerUp(double *delay, struct game* game, struct powerup* power) {
+	if (game->gun == 2 && game->worldTime - *delay > 15) {
+		game->gun = 1;
+		*delay = 0.0;
+	}
+	else if (game->gun == 3 && game->worldTime - *delay > 7) {
+		game->gun = 1;
+		*delay = 0.0;
+	}
+	int seed = rand() % 100;
+	int carPosition = game->posX + SCREEN_WIDTH / 2;
+	if (carPosition > power->x - 20 && carPosition < power->x + 20 && power->y > SCREEN_HEIGHT * 2 / 3 - 20 && power->y < SCREEN_HEIGHT * 2 / 3) {
+		power->onmap = false;
+		if (seed < 80 && game->gun == 1) {
+			game->gun = 2;
+			return 1;
+		}
+		else if (game->gun == 1) {
+			game->gun = 3;
+			return 1;
+		}
+	}
+	return 0;
 }
 
-int initialize(SDL_Surface** screen, SDL_Texture** scrtex, SDL_Renderer** renderer, SDL_Window** window, struct colors* colors) {
+void refresh(struct surfaces *surfaces) {
+	SDL_UpdateTexture(surfaces->scrtex, NULL, surfaces->screen->pixels, surfaces->screen->pitch);
+	SDL_RenderCopy(surfaces->renderer, surfaces->scrtex, NULL, NULL);
+	SDL_RenderPresent(surfaces->renderer);
+}
+
+int initialize(struct surfaces *surfaces, struct colors* colors) {
 	if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
 		printf("SDL_Init error: %s\n", SDL_GetError());
 		return 1;
 	}
 
 	//int rc = SDL_CreateWindowAndRenderer(0, 0, SDL_WINDOW_FULLSCREEN_DESKTOP, &window, &renderer); // tryb pe³noekranowy
-	int rc = SDL_CreateWindowAndRenderer(SCREEN_WIDTH, SCREEN_HEIGHT, 0, window, renderer);
+	int rc = SDL_CreateWindowAndRenderer(SCREEN_WIDTH, SCREEN_HEIGHT, 0, &surfaces->window, &surfaces->renderer);
 	if (rc != 0) {
 		SDL_Quit();
 		printf("SDL_CreateWindowAndRenderer error: %s\n", SDL_GetError());
@@ -175,14 +221,14 @@ int initialize(SDL_Surface** screen, SDL_Texture** scrtex, SDL_Renderer** render
 	};
 
 	SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "linear");
-	SDL_RenderSetLogicalSize(*renderer, SCREEN_WIDTH, SCREEN_HEIGHT);
-	SDL_SetRenderDrawColor(*renderer, 0, 0, 0, 255);
+	SDL_RenderSetLogicalSize(surfaces->renderer, SCREEN_WIDTH, SCREEN_HEIGHT);
+	SDL_SetRenderDrawColor(surfaces->renderer, 0, 0, 0, 255);
 
-	SDL_SetWindowTitle(*window, "Dawid Glazik s193069");
-	*screen = SDL_CreateRGBSurface(0, SCREEN_WIDTH, SCREEN_HEIGHT, 32, 0x00FF0000, 0x0000FF00, 0x000000FF, 0xFF000000);
-	*scrtex = SDL_CreateTexture(*renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, SCREEN_WIDTH, SCREEN_HEIGHT);
+	SDL_SetWindowTitle(surfaces->window, "Dawid Glazik s193069");
+	surfaces->screen = SDL_CreateRGBSurface(0, SCREEN_WIDTH, SCREEN_HEIGHT, 32, 0x00FF0000, 0x0000FF00, 0x000000FF, 0xFF000000);
+	surfaces->scrtex = SDL_CreateTexture(surfaces->renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, SCREEN_WIDTH, SCREEN_HEIGHT);
 
-	initColors(*screen, colors);
+	initColors(surfaces->screen, colors);
 }
 
 void initColors(SDL_Surface* screen, struct colors* colors) {
@@ -193,23 +239,43 @@ void initColors(SDL_Surface* screen, struct colors* colors) {
 	colors->szary = SDL_MapRGB(screen->format, 0x7A, 0x7A, 0x7A);
 }
 
-void setBMPs(SDL_Surface* screen, SDL_Texture* scrtex, SDL_Renderer* renderer, SDL_Window* window, SDL_Surface** charset, SDL_Surface** pauza, SDL_Surface** saveNload, SDL_Surface** ranking) {
+void setBMPs(struct surfaces* surfaces) {
+	surfaces->charset = SDL_LoadBMP("obrazy/cs8x8.bmp");
+	loadPicture(surfaces->charset, surfaces);
+	SDL_SetColorKey(surfaces->charset, true, 0x000000);
 
-	*charset = SDL_LoadBMP("obrazy/cs8x8.bmp");
-	loadPicture(*charset, screen, scrtex, renderer, window);
-	SDL_SetColorKey(*charset, true, 0x000000);
+	surfaces->pauza = SDL_LoadBMP("obrazy/pauza.bmp");
+	loadPicture(surfaces->pauza, surfaces);
 
-	*pauza = SDL_LoadBMP("obrazy/pauza.bmp");
-	loadPicture(*pauza, screen, scrtex, renderer, window);
+	surfaces->saveNload = SDL_LoadBMP("obrazy/Save.bmp");
+	loadPicture(surfaces->saveNload, surfaces);
 
-	*saveNload = SDL_LoadBMP("obrazy/Save.bmp");
-	loadPicture(*saveNload, screen, scrtex, renderer, window);
+	surfaces->ranking = SDL_LoadBMP("obrazy/ranking.bmp");
+	loadPicture(surfaces->ranking, surfaces);
 
-	*ranking = SDL_LoadBMP("obrazy/ranking.bmp");
-	loadPicture(*ranking, screen, scrtex, renderer, window);
+	surfaces->powerUp = SDL_LoadBMP("obrazy/power.bmp");
+	loadPicture(surfaces->powerUp, surfaces);
+
+	surfaces->pistol = SDL_LoadBMP("obrazy/pistol.bmp");
+	loadPicture(surfaces->pistol, surfaces);
+
+	surfaces->rifle = SDL_LoadBMP("obrazy/rifle.bmp");
+	loadPicture(surfaces->rifle, surfaces);
+
+	surfaces->sniper = SDL_LoadBMP("obrazy/sniper.bmp");
+	loadPicture(surfaces->sniper, surfaces);
+
+	surfaces->enemy = SDL_LoadBMP("obrazy/car_enemy.bmp");
+	loadPicture(surfaces->enemy, surfaces);
+
+	surfaces->civilian = SDL_LoadBMP("obrazy/car_civilian.bmp");
+	loadPicture(surfaces->civilian, surfaces);
+
+	surfaces->bullet = SDL_LoadBMP("obrazy/bullet.bmp");
+	loadPicture(surfaces->bullet, surfaces);
 }
 
-void UploadSavesList(struct toFile* toFile, int sizeOfRanking) {
+void UploadSavesList(const struct toFile* toFile, int sizeOfRanking) {
 	FILE* file;
 	if (fopen_s(&file, "zapisy/lista.txt", "w") == 0) {
 		fprintf(file, "%s ", toFile->slot1);
@@ -244,11 +310,11 @@ int DownloadSavesList(char* text1, char* text2, char* text3, int* sizeOfRanking)
 
 void moving(struct game* game, bool state[5], double* speed) {
 	if (state[SpeedUp] && state[Right]) {
-		game->posX += 5;
+		game->posX++;
 		*speed = 2.0;
 	}
 	else if (state[SpeedUp] && state[Left]) {
-		game->posX -= 5;
+		game->posX--;
 		*speed = 2.0;
 	}
 	else if (state[SlowDown] && state[Right]) {
@@ -325,7 +391,7 @@ void saveHRranking(double* lista, int* sizeOfRanking) {
 	}
 }
 
-void calculations(struct game* game, bool state[5], double* delta, double* fpsTimer, double* speed, double* penalty, int* fps, int* frames) {
+void calculations(struct game* game, struct powerup *power, bool state[5], double* delta, double* fpsTimer, double* speed, double* penalty, int* fps, int* frames) {
 	game->worldTime += *delta;
 	game->distance += *speed * *delta;
 	if (state[RoadSide]) *penalty = *speed * *delta;
@@ -338,7 +404,27 @@ void calculations(struct game* game, bool state[5], double* delta, double* fpsTi
 	if (game->worldTime - game->temp >= 0.025) {
 		moving(game, state, speed);
 	}
-	if (game->worldTime - game->temp >= 0.05 / *speed) {
-		mapMovement(game);
+	if (game->worldTime - game->temp >= 0.075 / *speed) {
+		mapMovement(game, power);
+	}
+}
+
+void bullets(struct game* game) {
+	switch (game->gun){
+	case 2:
+		if (game->worldTime - game->temp >= 0.025) {
+
+		}
+		break;
+	case 3:
+		if (game->worldTime - game->temp >= 0.025) {
+
+		}
+		break;
+	default:
+		if (game->worldTime - game->temp >= 0.025) {
+
+		}
+		break;
 	}
 }
