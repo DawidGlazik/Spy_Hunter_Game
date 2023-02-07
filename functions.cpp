@@ -409,22 +409,36 @@ void calculations(struct game* game, struct powerup *power, bool state[5], doubl
 	}
 }
 
-void bullets(struct game* game) {
-	switch (game->gun){
-	case 2:
-		if (game->worldTime - game->temp >= 0.025) {
-
+void bullets(struct game* game, struct bullet *bullet) {
+	if (bullet->launched) {
+		switch (game->gun) {
+		case 2:
+			if (game->worldTime - game->temp >= 0.025) {
+				if (bullet->y >= 96) bullet->y-=3;
+				else {
+					bullet->launched = false;
+					bullet->y = SCREEN_HEIGHT * 2 / 3 - 20;
+				}
+			}
+			break;
+		case 3:
+			if (game->worldTime - game->temp >= 0.025) {
+				if (bullet->y >= 48) bullet->y -= 7;
+				else {
+					bullet->launched = false;
+					bullet->y = SCREEN_HEIGHT * 2 / 3 - 20;
+				}
+			}
+			break;
+		default:
+			if (game->worldTime - game->temp >= 0.025) {
+				if (bullet->y >= 144) bullet->y--;
+				else {
+					bullet->launched = false;
+					bullet->y = SCREEN_HEIGHT * 2 / 3 - 20;
+				}
+			}
+			break;
 		}
-		break;
-	case 3:
-		if (game->worldTime - game->temp >= 0.025) {
-
-		}
-		break;
-	default:
-		if (game->worldTime - game->temp >= 0.025) {
-
-		}
-		break;
 	}
 }

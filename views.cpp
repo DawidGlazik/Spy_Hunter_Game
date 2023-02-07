@@ -8,7 +8,7 @@ enum {
 	RoadSide
 };
 
-void drawView(struct surfaces *surfaces, int plansza[MAP_HEIGHT][MAP_WIDTH], int fps, int delay, struct game* game, struct colors* colors, struct powerup *power) {
+void drawView(struct surfaces *surfaces, int plansza[MAP_HEIGHT][MAP_WIDTH], int fps, int delay, struct game* game, struct colors* colors, struct powerup *power, struct bullet *bullet) {
 	char text[128];
 	SDL_FillRect(surfaces->screen, NULL, colors->szary);
 	for (int i = 0; i < MAP_HEIGHT; i++) {
@@ -40,7 +40,7 @@ void drawView(struct surfaces *surfaces, int plansza[MAP_HEIGHT][MAP_WIDTH], int
 		break;
 	}
 	if (game->lives == 2) DrawSurface(surfaces->screen, surfaces->player, 25, SCREEN_HEIGHT - 30);
-	DrawSurface(surfaces->screen, surfaces->bullet, SCREEN_WIDTH / 2 + game->posX, SCREEN_HEIGHT / 3 * 2 + 50);
+	if (bullet->launched) DrawSurface(surfaces->screen, surfaces->bullet, bullet->x, bullet->y);
 }
 
 void finishView(struct surfaces* surfaces, int score, struct colors* colors, struct coords* coords) {

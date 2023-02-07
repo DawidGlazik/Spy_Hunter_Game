@@ -18,6 +18,7 @@ int main(int argc, char **argv) {
 	struct coords coords = {0, 0};
 	struct switches switches = {false, false, false, false, false, false};
 	struct surfaces surfaces;
+	struct bullet bullet = {0, SCREEN_HEIGHT * 2 / 3 - 20, false};
 	SDL_Event event;
 	int t1, t2, frames, fps, sort, sizeOfRanking, scroll;
 	double delta, fpsTimer, speed, penalty, delay = 0;
@@ -62,10 +63,11 @@ int main(int argc, char **argv) {
 			t1 = t2;
 			DrawSurface(surfaces.screen, surfaces.pauza, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2);
 		if (!switches.pause && !switches.finish && !switches.save && !switches.load && !switches.ranking) {
-			printf("%.1lf\n", game.worldTime - delay);
+			printf("%d %d\n", bullet.x, bullet.y);
 			SDL_ShowCursor(SDL_DISABLE);
 			calculations(&game, &power, state, &delta, &fpsTimer, &speed, &penalty, &fps, &frames);
-			drawView(&surfaces, game.plansza, fps, delay, &game, &colors, &power);
+			drawView(&surfaces, game.plansza, fps, delay, &game, &colors, &power, &bullet);
+			bullets(&game, &bullet);
 			if (checkPowerUp(&delay, &game, &power)) delay = game.worldTime;
 			if (checkCollision(&surfaces, &game, &switches.pause, state)) {
 				game.lives--;
@@ -84,7 +86,7 @@ int main(int argc, char **argv) {
 		if (switches.load) saveLoadView(&surfaces, &colors, &toFile, &coords, &event); //odczyt
 		if (switches.ranking) rankingView(&surfaces, &colors, &sort, lista, sizeOfRanking, &scroll); //ranking
 		refresh(&surfaces);
-		if (!switches.save && !switches.load && !switches.ranking && !switches.finish) driveEvents(&event, &game, &switches, state, &penalty);
+		if (!switches.save && !switches.load && !switches.ranking && !switches.finish) driveEvents(&event, &game, &switches, &bullet, state, &penalty);
 		else if (switches.ranking) rankingEvents(&event, &switches, &coords, &sort, &scroll, sizeOfRanking);
 		else if (switches.finish) finishEvents(surfaces.screen, &event, &switches, &coords, &game, lista, &sizeOfRanking);
 		else saveNloadEvents(&event, &switches, &coords, &toFile, &game);

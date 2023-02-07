@@ -128,7 +128,7 @@ void sortArray(double* lista, int sizeOfRanking, int option);
 
 void calculations(struct game* game, struct powerup* power, bool state[5], double* delta, double* fpsTimer, double* speed, double* penalty, int* fps, int* frames);
 
-void bullets(struct game* game);
+void bullets(struct game* game, struct bullet *bullet);
 
 
 
