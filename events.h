@@ -1,7 +1,7 @@
 #pragma once
 #include "functions.h"
 
-void driveEvents(SDL_Event* event, struct game* game, struct switches* switches, struct bullet *bullet, bool state[5], double* penalty);
+void driveEvents(SDL_Event* event, struct game* game, struct switches* switches, struct bullet *bullet, bool state[6], double* penalty);
 
 void saveNloadEvents(SDL_Event* event, struct switches* switches, struct coords* coords, struct toFile* toFile, struct game* game);
 

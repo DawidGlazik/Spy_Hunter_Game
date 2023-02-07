@@ -5,10 +5,11 @@ enum {
 	SlowDown,
 	Left,
 	Right,
-	RoadSide
+	RoadSide,
+	Block
 };
 
-void driveEvents(SDL_Event* event, struct game* game, struct switches* switches, struct bullet *bullet, bool state[5], double* penalty) {
+void driveEvents(SDL_Event* event, struct game* game, struct switches* switches, struct bullet *bullet, bool state[6], double* penalty) {
 	while (SDL_PollEvent(event)) {
 		switch (event->type) {
 		case SDL_KEYDOWN:

@@ -5,7 +5,8 @@ enum {
 	SlowDown,
 	Left,
 	Right,
-	RoadSide
+	RoadSide,
+	Block
 };
 
 void DrawString(SDL_Surface* screen, int x, int y, const char* text, SDL_Surface* charset) {
@@ -73,7 +74,7 @@ void startBoard(int plansza[MAP_HEIGHT][MAP_WIDTH]) {
 	}
 }
 
-void mapMovement(struct game* game, struct powerup *power) {
+void mapMovement(struct game* game, struct powerup *power, struct enemy* enemy, struct civilian* civilian) {
 	int seed = rand() % 100;
 	int seed2 = rand() % 5000;
 	int seed3 = rand() % (SCREEN_WIDTH - 2 * game->plansza[3][1]);
@@ -93,6 +94,22 @@ void mapMovement(struct game* game, struct powerup *power) {
 	game->temp = game->worldTime;
 	if (power->y + 24 < SCREEN_HEIGHT) power->y += 24;
 	else power->onmap = false;
+	if (seed >= 50 && seed % 10 == 0 && !enemy->onmap) {
+		enemy->onmap = true;
+		enemy->x = game->plansza[3][1] + seed3;
+		enemy->y = 48;
+		enemy->lives = 2;
+	}
+	else if (seed % 10 == 0 && !civilian->onmap) {
+		civilian->onmap = true;
+		civilian->x = game->plansza[3][1] + seed3;
+		civilian->y = 48;
+		civilian->lives = 2;
+	}
+	if (enemy->y + 30 < SCREEN_HEIGHT) enemy->y += 15;
+	else enemy->onmap = false;
+	if (civilian->y + 30 < SCREEN_HEIGHT) civilian->y += 15;
+	else civilian->onmap = false;
 }
 
 int loadPicture(SDL_Surface* any, struct surfaces *surfaces) {
@@ -147,7 +164,7 @@ void loadFile(struct game* game, int option) {
 	}
 }
 
-int checkCollision(struct surfaces *surfaces, struct game* game, bool* pause, bool state[5]) {
+int checkCollision(struct surfaces *surfaces, struct game* game, bool* pause, bool state[6]) {
 	for (int i = 0; i < 3; i++) {
 		int position = SCREEN_WIDTH / 2 + game->posX;
 		int grass = game->plansza[11 + i][1];
@@ -157,22 +174,26 @@ int checkCollision(struct surfaces *surfaces, struct game* game, bool* pause, bo
 				return 0;
 			}
 			else {
-				surfaces->player = SDL_LoadBMP("obrazy/car_bum.bmp");
-				loadPicture(surfaces->player, surfaces);
-				DrawSurface(surfaces->screen, surfaces->player, SCREEN_WIDTH / 2 + game->posX, SCREEN_HEIGHT / 3 * 2);
-				SDL_UpdateTexture(surfaces->scrtex, NULL, surfaces->screen->pixels, surfaces->screen->pitch);
-				SDL_RenderCopy(surfaces->renderer, surfaces->scrtex, NULL, NULL);
-				SDL_RenderPresent(surfaces->renderer);
-				*pause = true;
-				SDL_Delay(2000);
-				game->posX = 0;
-				*pause = false;
+				carExplode(surfaces, game, pause);
 				return 1;
 			}
 		}
 		else state[RoadSide] = false;
 	}
 	return 0;
+}
+
+void carExplode(struct surfaces* surfaces, struct game* game, bool* pause) {
+	surfaces->player = SDL_LoadBMP("obrazy/car_bum.bmp");
+	loadPicture(surfaces->player, surfaces);
+	DrawSurface(surfaces->screen, surfaces->player, SCREEN_WIDTH / 2 + game->posX, SCREEN_HEIGHT / 3 * 2);
+	SDL_UpdateTexture(surfaces->scrtex, NULL, surfaces->screen->pixels, surfaces->screen->pitch);
+	SDL_RenderCopy(surfaces->renderer, surfaces->scrtex, NULL, NULL);
+	SDL_RenderPresent(surfaces->renderer);
+	*pause = true;
+	SDL_Delay(2000);
+	game->posX = 0;
+	*pause = false;
 }
 
 int checkPowerUp(double *delay, struct game* game, struct powerup* power) {
@@ -308,7 +329,7 @@ int DownloadSavesList(char* text1, char* text2, char* text3, int* sizeOfRanking)
 	return 0;
 }
 
-void moving(struct game* game, bool state[5], double* speed) {
+void moving(struct game* game, bool state[6], double* speed) {
 	if (state[SpeedUp] && state[Right]) {
 		game->posX++;
 		*speed = 2.0;
@@ -391,22 +412,16 @@ void saveHRranking(double* lista, int* sizeOfRanking) {
 	}
 }
 
-void calculations(struct game* game, struct powerup *power, bool state[5], double* delta, double* fpsTimer, double* speed, double* penalty, int* fps, int* frames) {
+void calculations(struct game* game, bool state[6], double* delta, double* fpsTimer, double* speed, double* penalty, int* fps, int* frames) {
 	game->worldTime += *delta;
 	game->distance += *speed * *delta;
-	if (state[RoadSide]) *penalty = *speed * *delta;
+	if (state[RoadSide] || state[Block]) *penalty += *speed * *delta;
 	*fpsTimer += *delta;
 	if (*fpsTimer > 0.5) {
 		*fps = *frames * 2;
 		*frames = 0;
 		*fpsTimer -= 0.5;
 	};
-	if (game->worldTime - game->temp >= 0.025) {
-		moving(game, state, speed);
-	}
-	if (game->worldTime - game->temp >= 0.075 / *speed) {
-		mapMovement(game, power);
-	}
 }
 
 void bullets(struct game* game, struct bullet *bullet) {
@@ -414,7 +429,7 @@ void bullets(struct game* game, struct bullet *bullet) {
 		switch (game->gun) {
 		case 2:
 			if (game->worldTime - game->temp >= 0.025) {
-				if (bullet->y >= 96) bullet->y-=3;
+				if (bullet->y >= 120) bullet->y-=3;
 				else {
 					bullet->launched = false;
 					bullet->y = SCREEN_HEIGHT * 2 / 3 - 20;
@@ -432,7 +447,7 @@ void bullets(struct game* game, struct bullet *bullet) {
 			break;
 		default:
 			if (game->worldTime - game->temp >= 0.025) {
-				if (bullet->y >= 144) bullet->y--;
+				if (bullet->y >= 192) bullet->y--;
 				else {
 					bullet->launched = false;
 					bullet->y = SCREEN_HEIGHT * 2 / 3 - 20;
@@ -441,4 +456,54 @@ void bullets(struct game* game, struct bullet *bullet) {
 			break;
 		}
 	}
+}
+
+void movementOnMap(struct game* game, struct powerup* power, struct enemy* enemy, struct civilian* civilian, bool state[6], double* speed){
+	if (game->worldTime - game->temp >= 0.025) {
+		moving(game, state, speed);
+	}
+	if (game->worldTime - game->temp >= 0.075 / *speed) {
+		mapMovement(game, power, enemy, civilian);
+	}
+}
+
+void checkIfHit(double *extraPoints, struct bullet* bullet, struct enemy* enemy, struct civilian* civilian, bool state[6]) {
+	const clock_t begin_time = clock();
+	static clock_t diff = clock();
+	if ((float)begin_time / CLOCKS_PER_SEC - (float)diff / CLOCKS_PER_SEC > 5) state[Block] = false;
+	if (bullet->launched && bullet->x > enemy->x - 14 && bullet->x < enemy->x + 14 && bullet->y > enemy->y && bullet->y < enemy->y + 44) {
+		bullet->launched = false;
+		enemy->lives--;
+		if (!state[Block]) *extraPoints += 500.0;
+	}
+	if (bullet->launched && bullet->x > civilian->x - 14 && bullet->x < civilian->x + 14 && bullet->y > civilian->y && bullet->y < civilian->y + 44) {
+		bullet->launched = false;
+		civilian->lives--;
+		state[Block] = true;
+		diff = clock();
+	}
+}
+
+int checkIfCrash(struct surfaces* surfaces, struct game* game, struct enemy* enemy, struct civilian* civilian, bool *pause) {
+	int playerPosX = game->posX + SCREEN_WIDTH / 2;
+	int playerPosY = SCREEN_HEIGHT / 3 * 2;
+	if (playerPosX > enemy->x - 14 && playerPosX < enemy->x + 14 && enemy->y + 20 > playerPosY && enemy->y + 20 < playerPosY + 20) {
+		carExplode(surfaces, game, pause);
+		enemy->onmap = false;
+		enemy->y = SCREEN_HEIGHT;
+		return 1;
+	}
+	else if (playerPosX > civilian->x - 14 && playerPosX < civilian->x + 14 && civilian->y + 20 > playerPosY && civilian->y + 20 < playerPosY + 20) {
+		carExplode(surfaces, game, pause);
+		civilian->onmap = false;
+		civilian->y = SCREEN_HEIGHT;
+		return 1;
+	}
+	else {
+		return 0;
+	}
+}
+
+void pushOtherCars(struct game* game, struct enemy* enemy, struct civilian* civilian) {
+
 }

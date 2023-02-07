@@ -90,6 +90,20 @@ struct bullet {
 	bool launched;
 };
 
+struct enemy {
+	int x;
+	int y;
+	int lives;
+	bool onmap;
+};
+
+struct civilian {
+	int x;
+	int y;
+	int lives;
+	bool onmap;
+};
+
 void DrawString(SDL_Surface* screen, int x, int y, const char* text, SDL_Surface* charset);
 
 void DrawSurface(SDL_Surface* screen, SDL_Surface* sprite, int x, int y);
@@ -104,13 +118,13 @@ void DrawRectangle(SDL_Surface* screen, int x, int y, int l, int k, Uint32 outli
 
 void startBoard(int plansza[MAP_HEIGHT][MAP_WIDTH]);	//initialize the map
 
-void mapMovement(struct game* game, struct powerup *power); //map scrolling
+void mapMovement(struct game* game, struct powerup *power, struct enemy* enemy, struct civilian* civilian); //map scrolling
 
 int loadPicture(SDL_Surface* any, struct surfaces *surfaces);
 
 void endProgram(struct surfaces *surfaces);
 
-int checkCollision(struct surfaces *surfaces, struct game* game, bool* pause, bool state[5]);
+int checkCollision(struct surfaces *surfaces, struct game* game, bool* pause, bool state[6]);
 
 int checkPowerUp(double *delay, struct game* game, struct powerup* power);
 
@@ -122,13 +136,23 @@ void initColors(SDL_Surface* screen, struct colors* colors);
 
 void setBMPs(struct surfaces* surfaces);
 
-void moving(struct game* game, bool state[5], double* speed);		//car movement
+void moving(struct game* game, bool state[6], double* speed);		//car movement
 
 void sortArray(double* lista, int sizeOfRanking, int option);
 
-void calculations(struct game* game, struct powerup* power, bool state[5], double* delta, double* fpsTimer, double* speed, double* penalty, int* fps, int* frames);
+void calculations(struct game* game, bool state[6], double* delta, double* fpsTimer, double* speed, double* penalty, int* fps, int* frames);
 
 void bullets(struct game* game, struct bullet *bullet);
+
+void movementOnMap(struct game* game, struct powerup* power, struct enemy *enemy, struct civilian *civilian, bool state[6], double* speed);
+
+void checkIfHit(double* extraPoints, struct bullet* bullet, struct enemy* enemy, struct civilian* civilian, bool state[6]);
+
+int checkIfCrash(struct surfaces* surfaces, struct game* game, struct enemy* enemy, struct civilian* civilian, bool* pause);
+
+void carExplode(struct surfaces* surfaces, struct game* game, bool* pause);
+
+void pushOtherCars(struct game* game, struct enemy* enemy, struct civilian* civilian);
 
 
 
