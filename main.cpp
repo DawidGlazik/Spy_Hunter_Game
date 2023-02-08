@@ -72,6 +72,7 @@ int main(int argc, char **argv) {
 			drawView(&surfaces, game.plansza, fps, delay, &game, &colors, &power, &bullet, &enemy, &civilian);
 			bullets(&game, &bullet);
 			checkIfHit(&extraPoints, &bullet, &enemy, &civilian, state);
+			checkNPCCollision(&surfaces, &game, &enemy, &civilian, state);
 			if (checkPowerUp(&delay, &game, &power)) delay = game.worldTime;
 			if (checkCollision(&surfaces, &game, &switches.pause, state) || checkIfCrash(&surfaces, &game, &enemy, &civilian, &switches.pause)) {
 				game.lives--;

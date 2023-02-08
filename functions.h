@@ -154,6 +154,12 @@ void carExplode(struct surfaces* surfaces, struct game* game, bool* pause);
 
 void pushOtherCars(struct game* game, struct enemy* enemy, struct civilian* civilian);
 
+void checkNPCCollision(struct surfaces* surfaces, struct game* game, struct enemy* enemy, struct civilian* civilian, bool state[6]);
+
+void enemyMovement(struct game* game, struct enemy* enemy);
+
+void civilianMovement(struct game* game, struct civilian* civilian);
+
 
 
 void saveFile(const struct game* game, int option, struct toFile* toFile);	//save game

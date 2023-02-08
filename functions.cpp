@@ -461,9 +461,14 @@ void bullets(struct game* game, struct bullet *bullet) {
 void movementOnMap(struct game* game, struct powerup* power, struct enemy* enemy, struct civilian* civilian, bool state[6], double* speed){
 	if (game->worldTime - game->temp >= 0.025) {
 		moving(game, state, speed);
+		pushOtherCars(game, enemy, civilian);
 	}
 	if (game->worldTime - game->temp >= 0.075 / *speed) {
 		mapMovement(game, power, enemy, civilian);
+	}
+	if (game->worldTime - game->temp >= 0.065 / *speed) {
+		enemyMovement(game, enemy);
+		civilianMovement(game, civilian);
 	}
 }
 
@@ -487,13 +492,13 @@ void checkIfHit(double *extraPoints, struct bullet* bullet, struct enemy* enemy,
 int checkIfCrash(struct surfaces* surfaces, struct game* game, struct enemy* enemy, struct civilian* civilian, bool *pause) {
 	int playerPosX = game->posX + SCREEN_WIDTH / 2;
 	int playerPosY = SCREEN_HEIGHT / 3 * 2;
-	if (playerPosX > enemy->x - 14 && playerPosX < enemy->x + 14 && enemy->y + 20 > playerPosY && enemy->y + 20 < playerPosY + 20) {
+	if (abs(playerPosX - enemy->x) < 28 && enemy->y + 44 > playerPosY && enemy->y < playerPosY - 25) {
 		carExplode(surfaces, game, pause);
 		enemy->onmap = false;
 		enemy->y = SCREEN_HEIGHT;
 		return 1;
 	}
-	else if (playerPosX > civilian->x - 14 && playerPosX < civilian->x + 14 && civilian->y + 20 > playerPosY && civilian->y + 20 < playerPosY + 20) {
+	else if (abs(playerPosX - civilian->x) < 28 && civilian->y + 44 > playerPosY && civilian->y < playerPosY - 25) {
 		carExplode(surfaces, game, pause);
 		civilian->onmap = false;
 		civilian->y = SCREEN_HEIGHT;
@@ -505,5 +510,61 @@ int checkIfCrash(struct surfaces* surfaces, struct game* game, struct enemy* ene
 }
 
 void pushOtherCars(struct game* game, struct enemy* enemy, struct civilian* civilian) {
+	int playerPosX = game->posX + SCREEN_WIDTH / 2;
+	int playerPosY = SCREEN_HEIGHT / 3 * 2;
+	if (abs(playerPosX - enemy->x) > 28 && abs(playerPosX - enemy->x) < 30 && abs(playerPosY - enemy->y) < 44) {
+		if (playerPosX - enemy->x > 0) enemy->x--;
+		else enemy->x++;
+	}
+	else if (abs(playerPosX - civilian->x) > 28 && abs(playerPosX - civilian->x) < 30 && abs(playerPosY - civilian->y) < 44) {
+		if (playerPosX - civilian->x > 0) civilian->x--;
+		else civilian->x++;
+	}
+}
 
+void checkNPCCollision(struct surfaces* surfaces, struct game* game, struct enemy* enemy, struct civilian* civilian, bool state[6]) {
+	const clock_t begin_time = clock();
+	static clock_t diff2 = clock();
+	int mapPart = enemy->y / 24;
+	for (int i = 0; i < 3; i++) {
+		int grass = game->plansza[mapPart + i][1];
+		if (enemy->x < grass - ROADSIDE || enemy->x > SCREEN_WIDTH - grass + ROADSIDE) {
+			if (!state[Block] && enemy->onmap) game->score += 1000;
+			enemy->onmap = false;
+		}
+	}
+	mapPart = civilian->y / 24;
+	for (int i = 0; i < 3; i++) {
+		int grass = game->plansza[mapPart + i][1];
+		if (civilian->x < grass - ROADSIDE || civilian->x > SCREEN_WIDTH - grass + ROADSIDE) {
+			if (civilian->onmap) {
+				state[Block] = true;
+				diff2 = clock();
+			}
+			civilian->onmap = false;
+		}
+	}
+}
+
+void enemyMovement(struct game* game, struct enemy* enemy) {
+	int playerPosX = game->posX + SCREEN_WIDTH / 2;
+	if (enemy->y < SCREEN_HEIGHT / 2 + 50) {
+		if (playerPosX - enemy->x > 0) enemy->x++;
+		else enemy->x--;
+	}
+}
+
+void civilianMovement(struct game* game, struct civilian* civilian) {
+	int playerPosX = game->posX + SCREEN_WIDTH / 2;
+	int mapPart = civilian->y / 24;
+	for (int i = 0; i < 3; i++) {
+		int grass = game->plansza[mapPart + i][1];
+		if (civilian->x )
+		if (civilian->x < grass + ROADSIDE && civilian->y < SCREEN_HEIGHT / 2 + 50) {
+			civilian->x++;
+		}
+		else if (civilian->x > SCREEN_WIDTH - grass - ROADSIDE && civilian->y < SCREEN_HEIGHT / 2 + 50) {
+			civilian->x--;
+		}
+	}
 }
