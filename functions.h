@@ -146,7 +146,7 @@ void bullets(struct game* game, struct bullet *bullet);
 
 void movementOnMap(struct game* game, struct powerup* power, struct enemy *enemy, struct civilian *civilian, bool state[6], double* speed);
 
-void checkIfHit(double* extraPoints, struct bullet* bullet, struct enemy* enemy, struct civilian* civilian, bool state[6]);
+int checkIfHit(double* extraPoints, struct bullet* bullet, struct enemy* enemy, struct civilian* civilian, bool state[6]);
 
 int checkIfCrash(struct surfaces* surfaces, struct game* game, struct enemy* enemy, struct civilian* civilian, bool* pause);
 
@@ -154,7 +154,7 @@ void carExplode(struct surfaces* surfaces, struct game* game, bool* pause);
 
 void pushOtherCars(struct game* game, struct enemy* enemy, struct civilian* civilian);
 
-void checkNPCCollision(struct surfaces* surfaces, struct game* game, struct enemy* enemy, struct civilian* civilian, bool state[6]);
+void checkNPCCollision(double* extraPoints, struct surfaces* surfaces, struct game* game, struct enemy* enemy, struct civilian* civilian, bool state[6], struct bullet* bullet);
 
 void enemyMovement(struct game* game, struct enemy* enemy);
 

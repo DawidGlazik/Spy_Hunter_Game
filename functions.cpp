@@ -472,21 +472,20 @@ void movementOnMap(struct game* game, struct powerup* power, struct enemy* enemy
 	}
 }
 
-void checkIfHit(double *extraPoints, struct bullet* bullet, struct enemy* enemy, struct civilian* civilian, bool state[6]) {
-	const clock_t begin_time = clock();
-	static clock_t diff = clock();
-	if ((float)begin_time / CLOCKS_PER_SEC - (float)diff / CLOCKS_PER_SEC > 5) state[Block] = false;
+int checkIfHit(double *extraPoints, struct bullet* bullet, struct enemy* enemy, struct civilian* civilian, bool state[6]) {
 	if (bullet->launched && bullet->x > enemy->x - 14 && bullet->x < enemy->x + 14 && bullet->y > enemy->y && bullet->y < enemy->y + 44) {
 		bullet->launched = false;
 		enemy->lives--;
 		if (!state[Block]) *extraPoints += 500.0;
+		return 0;
 	}
 	if (bullet->launched && bullet->x > civilian->x - 14 && bullet->x < civilian->x + 14 && bullet->y > civilian->y && bullet->y < civilian->y + 44) {
 		bullet->launched = false;
 		civilian->lives--;
 		state[Block] = true;
-		diff = clock();
+		return 1;
 	}
+	return 0;
 }
 
 int checkIfCrash(struct surfaces* surfaces, struct game* game, struct enemy* enemy, struct civilian* civilian, bool *pause) {
@@ -522,14 +521,18 @@ void pushOtherCars(struct game* game, struct enemy* enemy, struct civilian* civi
 	}
 }
 
-void checkNPCCollision(struct surfaces* surfaces, struct game* game, struct enemy* enemy, struct civilian* civilian, bool state[6]) {
+void checkNPCCollision(double* extraPoints, struct surfaces* surfaces, struct game* game, struct enemy* enemy, struct civilian* civilian, bool state[6], struct bullet* bullet) {
 	const clock_t begin_time = clock();
-	static clock_t diff2 = clock();
+	static clock_t diff = clock();
+	if ((float)begin_time / CLOCKS_PER_SEC - (float)diff / CLOCKS_PER_SEC > 5) state[Block] = false;
 	int mapPart = enemy->y / 24;
+	if (checkIfHit(extraPoints, bullet, enemy, civilian, state)) diff = clock();
 	for (int i = 0; i < 3; i++) {
 		int grass = game->plansza[mapPart + i][1];
 		if (enemy->x < grass - ROADSIDE || enemy->x > SCREEN_WIDTH - grass + ROADSIDE) {
-			if (!state[Block] && enemy->onmap) game->score += 1000;
+			if (!state[Block] && enemy->onmap) {
+				*extraPoints += 1000.0;
+			}
 			enemy->onmap = false;
 		}
 	}
@@ -539,7 +542,7 @@ void checkNPCCollision(struct surfaces* surfaces, struct game* game, struct enem
 		if (civilian->x < grass - ROADSIDE || civilian->x > SCREEN_WIDTH - grass + ROADSIDE) {
 			if (civilian->onmap) {
 				state[Block] = true;
-				diff2 = clock();
+				diff = clock();
 			}
 			civilian->onmap = false;
 		}
