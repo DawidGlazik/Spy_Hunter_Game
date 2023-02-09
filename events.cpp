@@ -173,7 +173,7 @@ void rankingEvents(SDL_Event* event, struct switches* switches, struct coords* c
 				switches->ranking = false;
 				switches->start = true;
 			}
-			else if (event->key.keysym.sym == SDLK_p) *sort = 1;
+			else if (event->key.keysym.sym == SDLK_s) *sort = 1;
 			else if (event->key.keysym.sym == SDLK_t) *sort = 2;
 		case SDL_MOUSEMOTION:
 			SDL_GetMouseState(&coords->x, &coords->y);

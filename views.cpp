@@ -41,18 +41,35 @@ void startView(struct surfaces* surfaces, struct colors* colors, struct coords *
 
 void controlsView(struct surfaces* surfaces, struct colors* colors) {
 	char text[128];
+	static char* controls[22] = { "\030","Speed up","\031","Slow down","\032","Go left","\033","Go right","ESC","Previous view / Quit","SPACE","Shoot","n","New game","f","Finish game","p","Pause game","s","Save game","l","Load game" };
 	int width = SCREEN_WIDTH - 200;
-	int height = SCREEN_HEIGHT - 160;
+	int height = SCREEN_HEIGHT - 120;
 	SDL_ShowCursor(1);
 	SDL_FillRect(surfaces->screen, NULL, colors->szary);
 	DrawLine(surfaces->screen, 100, 80, height, 0, 1, colors->ciemny_zielony);
-	DrawLine(surfaces->screen, 100, SCREEN_HEIGHT - 80, width, 1, 0, colors->ciemny_zielony);
+	DrawLine(surfaces->screen, 100, SCREEN_HEIGHT - 40, width, 1, 0, colors->ciemny_zielony);
 	DrawLine(surfaces->screen, SCREEN_WIDTH - 100, 80, height, 0, 1, colors->ciemny_zielony);
-	for (int i = 0; i < 11; i++) {
-		DrawLine(surfaces->screen, 100, 80 + i * (height / 11), width, 1, 0, colors->ciemny_zielony);
+	for (int i = 0; i < 12; i++) {
+		DrawLine(surfaces->screen, 100, 80 + i * (height / 12), width, 1, 0, colors->ciemny_zielony);
 	}
-	DrawLine(surfaces->screen, 100 + width / 10, 80, height, 0, 1, colors->ciemny_zielony);
-	DrawLine(surfaces->screen, 100 + width * 55 / 100, 80, height, 0, 1, colors->ciemny_zielony);
+	DrawLine(surfaces->screen, 100 + width * 3 / 10, 80, height, 0, 1, colors->ciemny_zielony);
+	sprintf(text, "Key");
+	DrawString(surfaces->screen, 100 + width * 1.5 / 10 - strlen(text) * 4, 93, text, surfaces->charset);
+	sprintf(text, "Action");
+	DrawString(surfaces->screen, 100 + width * 6.5 / 10 - strlen(text) * 4, 93, text, surfaces->charset);
+	int j = 1, k = 1;
+	for (int i = 0; i < 22; i++) {
+		if (i % 2 == 0) {
+			sprintf(text, "%s", controls[i]);
+			DrawString(surfaces->screen, 100 + width * 1.5 / 10 - strlen(text) * 4, 93 + j * height / 12, text, surfaces->charset);
+			j++;
+		}
+		else {
+			sprintf(text, "%s", controls[i]);
+			DrawString(surfaces->screen, 100 + width * 6.5 / 10 - strlen(text) * 4, 93 + k * height / 12, text, surfaces->charset);
+			k++;
+		}
+	}
 }
 
 void drawView(struct surfaces *surfaces, int plansza[MAP_HEIGHT][MAP_WIDTH], int fps, int delay, struct game* game, struct colors* colors, struct powerup *power, struct bullet *bullet, struct enemy *enemy, struct civilian *civilian) {
@@ -66,9 +83,7 @@ void drawView(struct surfaces *surfaces, int plansza[MAP_HEIGHT][MAP_WIDTH], int
 	DrawSurface(surfaces->screen, surfaces->player, SCREEN_WIDTH / 2 + game->posX, SCREEN_HEIGHT / 3 * 2);
 	DrawRectangle(surfaces->screen, 0, 0, SCREEN_WIDTH, 40, colors->czerwony, colors->niebieski);
 	sprintf(text, "Dawid Glazik, Time elapsed: %.1lf s %.0lf fps Score: %d", game->worldTime, (float)fps, game->score);
-	DrawString(surfaces->screen, surfaces->screen->w / 2 - strlen(text) * 4, 10, text, surfaces->charset);
-	sprintf(text, "r - ranking, Esc - wyjscie, \030 - przyspieszenie, \031 - zwolnienie");
-	DrawString(surfaces->screen, surfaces->screen->w / 2 - strlen(text) * 4, 26, text, surfaces->charset);
+	DrawString(surfaces->screen, surfaces->screen->w / 2 - strlen(text) * 4, 16, text, surfaces->charset);
 	switch (game->gun){
 	case 2:
 		DrawSurface(surfaces->screen, surfaces->rifle, surfaces->screen->w - 30, surfaces->screen->h - 30);
@@ -157,7 +172,6 @@ void rankingView(struct surfaces* surfaces, struct colors* colors, int* sort, do
 	}
 	DrawLine(surfaces->screen, 100 + width / 10, 80, height, 0, 1, colors->ciemny_zielony);
 	DrawLine(surfaces->screen, 100 + width * 55 / 100, 80, height, 0, 1, colors->ciemny_zielony);
-
 	sprintf(text, "Lp.");
 	DrawString(surfaces->screen, 125 - strlen(text) * 4, 93, text, surfaces->charset);
 	if (*sort == 1) sprintf(text, "Score \031");
@@ -166,7 +180,6 @@ void rankingView(struct surfaces* surfaces, struct colors* colors, int* sort, do
 	if (*sort == 2) sprintf(text, "Time \031");
 	else sprintf(text, "Time");
 	DrawString(surfaces->screen, width - strlen(text) * 4, 93, text, surfaces->charset);
-
 	sortArray(lista, sizeOfRanking, *sort);
 	int j = 1;
 	for (int i = *scroll; i < 10 + *scroll; i++) {
@@ -180,4 +193,6 @@ void rankingView(struct surfaces* surfaces, struct colors* colors, int* sort, do
 		DrawString(surfaces->screen, width - strlen(text) * 4, 93 + j * height / 11, text, surfaces->charset);
 		j++;
 	}
+	sprintf(text, "Push 's' to sort by score. Push 't' to sort by time.");
+	DrawString(surfaces->screen, 115, surfaces->screen->h - 75, text, surfaces->charset);
 }

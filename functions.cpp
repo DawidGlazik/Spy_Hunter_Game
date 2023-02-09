@@ -249,7 +249,7 @@ int initialize(struct surfaces *surfaces, struct colors* colors) {
 	SDL_RenderSetLogicalSize(surfaces->renderer, SCREEN_WIDTH, SCREEN_HEIGHT);
 	SDL_SetRenderDrawColor(surfaces->renderer, 0, 0, 0, 255);
 
-	SDL_SetWindowTitle(surfaces->window, "Dawid Glazik s193069");
+	SDL_SetWindowTitle(surfaces->window, "Spy Hunter");
 	surfaces->screen = SDL_CreateRGBSurface(0, SCREEN_WIDTH, SCREEN_HEIGHT, 32, 0x00FF0000, 0x0000FF00, 0x000000FF, 0xFF000000);
 	surfaces->scrtex = SDL_CreateTexture(surfaces->renderer, SDL_PIXELFORMAT_ARGB8888, SDL_TEXTUREACCESS_STREAMING, SCREEN_WIDTH, SCREEN_HEIGHT);
 
