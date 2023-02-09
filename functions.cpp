@@ -140,26 +140,30 @@ void endProgram(struct surfaces *surfaces) {
 	SDL_Quit();
 }
 
-void saveFile(const struct game* game, int option, struct toFile* toFile) {
+void saveFile(const struct game* game, int option, struct toFile* toFile, struct enemy* enemy, struct civilian* civilian) {
 	char* str[30];
-	if (option == 1) *str = "zapisy/zapis1.bin";
-	else if (option == 2) *str = "zapisy/zapis2.bin";
-	else *str = "zapisy/zapis3.bin";
+	if (option == 1) *str = "saves/zapis1.bin";
+	else if (option == 2) *str = "saves/zapis2.bin";
+	else *str = "saves/zapis3.bin";
 	FILE* plik;
 	if ((plik = fopen(*str, "w")) != NULL) {
 		fwrite(game, sizeof(struct game), 1, plik);
+		fwrite(enemy, sizeof(struct enemy), 1, plik);
+		fwrite(civilian, sizeof(struct civilian), 1, plik);
 		fclose(plik);
 	}
 }
 
-void loadFile(struct game* game, int option) {
+void loadFile(struct game* game, int option, struct enemy* enemy, struct civilian* civilian) {
 	char* str[30];
-	if (option == 1) *str = "zapisy/zapis1.bin";
-	else if (option == 2) *str = "zapisy/zapis2.bin";
-	else *str = "zapisy/zapis3.bin";
+	if (option == 1) *str = "saves/zapis1.bin";
+	else if (option == 2) *str = "saves/zapis2.bin";
+	else *str = "saves/zapis3.bin";
 	FILE* plik;
 	if ((plik = fopen(*str, "r")) != NULL) {
 		fread(game, sizeof(struct game), 1, plik);
+		fread(enemy, sizeof(struct enemy), 1, plik);
+		fread(civilian, sizeof(struct civilian), 1, plik);
 		fclose(plik);
 	}
 }
@@ -184,7 +188,7 @@ int checkCollision(struct surfaces *surfaces, struct game* game, bool* pause, bo
 }
 
 void carExplode(struct surfaces* surfaces, struct game* game, bool* pause) {
-	surfaces->player = SDL_LoadBMP("obrazy/car_bum.bmp");
+	surfaces->player = SDL_LoadBMP("images/car_bum.bmp");
 	loadPicture(surfaces->player, surfaces);
 	DrawSurface(surfaces->screen, surfaces->player, SCREEN_WIDTH / 2 + game->posX, SCREEN_HEIGHT / 3 * 2);
 	SDL_UpdateTexture(surfaces->scrtex, NULL, surfaces->screen->pixels, surfaces->screen->pitch);
@@ -261,44 +265,47 @@ void initColors(SDL_Surface* screen, struct colors* colors) {
 }
 
 void setBMPs(struct surfaces* surfaces) {
-	surfaces->charset = SDL_LoadBMP("obrazy/cs8x8.bmp");
+	surfaces->charset = SDL_LoadBMP("images/cs8x8.bmp");
 	loadPicture(surfaces->charset, surfaces);
 	SDL_SetColorKey(surfaces->charset, true, 0x000000);
 
-	surfaces->pauza = SDL_LoadBMP("obrazy/pauza.bmp");
+	surfaces->starter = SDL_LoadBMP("images/starter.bmp");
+	loadPicture(surfaces->starter, surfaces);
+
+	surfaces->pauza = SDL_LoadBMP("images/pauza.bmp");
 	loadPicture(surfaces->pauza, surfaces);
 
-	surfaces->saveNload = SDL_LoadBMP("obrazy/Save.bmp");
+	surfaces->saveNload = SDL_LoadBMP("images/Save.bmp");
 	loadPicture(surfaces->saveNload, surfaces);
 
-	surfaces->ranking = SDL_LoadBMP("obrazy/ranking.bmp");
+	surfaces->ranking = SDL_LoadBMP("images/ranking.bmp");
 	loadPicture(surfaces->ranking, surfaces);
 
-	surfaces->powerUp = SDL_LoadBMP("obrazy/power.bmp");
+	surfaces->powerUp = SDL_LoadBMP("images/power.bmp");
 	loadPicture(surfaces->powerUp, surfaces);
 
-	surfaces->pistol = SDL_LoadBMP("obrazy/pistol.bmp");
+	surfaces->pistol = SDL_LoadBMP("images/pistol.bmp");
 	loadPicture(surfaces->pistol, surfaces);
 
-	surfaces->rifle = SDL_LoadBMP("obrazy/rifle.bmp");
+	surfaces->rifle = SDL_LoadBMP("images/rifle.bmp");
 	loadPicture(surfaces->rifle, surfaces);
 
-	surfaces->sniper = SDL_LoadBMP("obrazy/sniper.bmp");
+	surfaces->sniper = SDL_LoadBMP("images/sniper.bmp");
 	loadPicture(surfaces->sniper, surfaces);
 
-	surfaces->enemy = SDL_LoadBMP("obrazy/car_enemy.bmp");
+	surfaces->enemy = SDL_LoadBMP("images/car_enemy.bmp");
 	loadPicture(surfaces->enemy, surfaces);
 
-	surfaces->civilian = SDL_LoadBMP("obrazy/car_civilian.bmp");
+	surfaces->civilian = SDL_LoadBMP("images/car_civilian.bmp");
 	loadPicture(surfaces->civilian, surfaces);
 
-	surfaces->bullet = SDL_LoadBMP("obrazy/bullet.bmp");
+	surfaces->bullet = SDL_LoadBMP("images/bullet.bmp");
 	loadPicture(surfaces->bullet, surfaces);
 }
 
 void UploadSavesList(const struct toFile* toFile, int sizeOfRanking) {
 	FILE* file;
-	if (fopen_s(&file, "zapisy/lista.txt", "w") == 0) {
+	if (fopen_s(&file, "saves/lista.txt", "w") == 0) {
 		fprintf(file, "%s ", toFile->slot1);
 		fprintf(file, "%s ", toFile->slot2);
 		fprintf(file, "%s ", toFile->slot3);
@@ -315,7 +322,7 @@ int DownloadSavesList(char* text1, char* text2, char* text3, int* sizeOfRanking)
 	int minute;
 	int second;
 	FILE* file;
-	if (fopen_s(&file, "zapisy/lista.txt", "r") == 0) {
+	if (fopen_s(&file, "saves/lista.txt", "r") == 0) {
 		fscanf_s(file, "%d/%d/%d-%d:%d:%d ", &day, &month, &year, &hour, &minute, &second);
 		sprintf(text1, "%d/%d/%d-%d:%d:%d ", day, month, year, hour, minute, second);
 		fscanf_s(file, "%d/%d/%d-%d:%d:%d ", &day, &month, &year, &hour, &minute, &second);
@@ -376,7 +383,7 @@ void sortArray(double* lista, int sizeOfRanking, int option) {
 
 void saveRankings(double* lista, int* sizeOfRanking) {
 	FILE* file;
-	if (fopen_s(&file, "zapisy/ranking.txt", "w") == 0) {
+	if (fopen_s(&file, "saves/ranking.txt", "w") == 0) {
 		for (int i = 0; i < *sizeOfRanking; i++) {
 			for (int j = 0; j < 2; j++) {
 				if (*(lista + i * 2 + j) != NULL) fprintf(file, "%lf\n", *(lista + i * 2 + j));
@@ -389,7 +396,7 @@ void saveRankings(double* lista, int* sizeOfRanking) {
 
 void loadRankings(double* lista, int* sizeOfRanking) {
 	FILE* file;
-	if (fopen_s(&file, "zapisy/ranking.txt", "r") == 0) {
+	if (fopen_s(&file, "saves/ranking.txt", "r") == 0) {
 		for (int i = 0; i < *sizeOfRanking; i++) {
 			for (int j = 0; j < 2; j++) {
 				fscanf_s(file, "%lf\n", (lista + i * 2 + j));
@@ -401,8 +408,8 @@ void loadRankings(double* lista, int* sizeOfRanking) {
 
 void saveHRranking(double* lista, int* sizeOfRanking) {
 	FILE* file;
-	if (fopen_s(&file, "zapisy/ranking_hr.txt", "w") == 0) {
-		fprintf(file, "\tLp.\t\t\tWynik\t\t\tCzas [s]\n");
+	if (fopen_s(&file, "saves/ranking_hr.txt", "w") == 0) {
+		fprintf(file, "\tLp.\t\t\tScore\t\t\tTime [s]\n");
 		for (int i = 0; i < *sizeOfRanking; i++) {
 			fprintf(file, "\t%d\t\t\t", i + 1);
 			if (*(lista + i * 2 ) != NULL) fprintf(file, "%.0lf\t\t\t", *(lista + i * 2));

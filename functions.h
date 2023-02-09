@@ -51,12 +51,14 @@ struct coords {
 };
 //view switches
 struct switches {
+	bool start;
 	bool save;
 	bool load;
 	bool quit;
 	bool finish;
 	bool pause;
 	bool ranking;
+	bool controls;
 };
 
 struct powerup {
@@ -67,6 +69,7 @@ struct powerup {
 
 struct surfaces {
 	SDL_Surface* screen;
+	SDL_Surface* starter;
 	SDL_Surface* charset;
 	SDL_Surface* player;
 	SDL_Surface* pauza;
@@ -162,7 +165,7 @@ void civilianMovement(struct game* game, struct civilian* civilian);
 
 
 
-void saveFile(const struct game* game, int option, struct toFile* toFile);	//save game
+void saveFile(const struct game* game, int option, struct toFile* toFile, struct enemy* enemy, struct civilian* civilian);	//save game
 
 void saveRankings(double* lista, int* sizeOfRanking);		//save ranking to file
 
@@ -172,7 +175,7 @@ void saveHRranking(double* lista, int* sizeOfRanking);	//saves human-readable ra
 
 
 
-void loadFile(struct game* game, int option);		//load game
+void loadFile(struct game* game, int option, struct enemy* enemy, struct civilian* civilian);		//load game
 
 void loadRankings(double* lista, int* sizeOfRanking);		//load ranking from file
 

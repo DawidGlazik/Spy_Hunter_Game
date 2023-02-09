@@ -13,11 +13,11 @@ enum {
 
 int main(int argc, char **argv) {
 	struct colors colors;
-	struct toFile toFile = { "Pusty1", "Pusty2", "Pusty3"};
+	struct toFile toFile = { "Empty1", "Empty2", "Empty3"};
 	struct game game;
 	struct powerup power;
 	struct coords coords = {0, 0};
-	struct switches switches = {false, false, false, false, false, false};
+	struct switches switches = {true, false, false, false, false, false, false, false};
 	struct surfaces surfaces;
 	struct bullet bullet = {0, SCREEN_HEIGHT * 2 / 3 - 20, false};
 	struct enemy enemy = { 0,0,2,false };
@@ -59,13 +59,13 @@ int main(int argc, char **argv) {
 	double* lista = (double*)malloc((sizeOfRanking + 1) * 2 * sizeof(double));
 	loadRankings(lista, &sizeOfRanking);
 	while(!switches.quit) {
-			surfaces.player = SDL_LoadBMP("obrazy/car.bmp");
+			surfaces.player = SDL_LoadBMP("images/car.bmp");
 			loadPicture(surfaces.player, &surfaces);
 			t2 = SDL_GetTicks();
 			delta = (t2 - t1) * 0.001;
 			t1 = t2;
-			DrawSurface(surfaces.screen, surfaces.pauza, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2);
-		if (!switches.pause && !switches.finish && !switches.save && !switches.load && !switches.ranking) {
+			if (!switches.start && switches.pause) DrawSurface(surfaces.screen, surfaces.pauza, SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2);
+		if (!switches.start && !switches.pause && !switches.finish && !switches.save && !switches.load && !switches.ranking && !switches.controls) {
 			SDL_ShowCursor(SDL_DISABLE);
 			calculations(&game, state, &delta, &fpsTimer, &speed, &penalty, &fps, &frames);
 			movementOnMap(&game, &power, &enemy, &civilian, state, &speed);
@@ -85,18 +85,22 @@ int main(int argc, char **argv) {
 			refresh(&surfaces);
 			frames++;
 		}
-		if (switches.finish) finishView(&surfaces, game.score, &colors, &coords); //koniec gry
-		if (switches.save) saveLoadView(&surfaces, &colors, &toFile, &coords, &event); //zapis
-		if (switches.load) saveLoadView(&surfaces, &colors, &toFile, &coords, &event); //odczyt
-		if (switches.ranking) rankingView(&surfaces, &colors, &sort, lista, sizeOfRanking, &scroll); //ranking
+		if (switches.start) startView(&surfaces, &colors, &coords);
+		if (switches.controls) controlsView(&surfaces, &colors);
+		if (switches.finish) finishView(&surfaces, game.score, &colors, &coords);
+		if (switches.save) saveLoadView(&surfaces, &colors, &toFile, &coords, &event);
+		if (switches.load) saveLoadView(&surfaces, &colors, &toFile, &coords, &event);
+		if (switches.ranking) rankingView(&surfaces, &colors, &sort, lista, sizeOfRanking, &scroll);
 		refresh(&surfaces);
-		if (!switches.save && !switches.load && !switches.ranking && !switches.finish) driveEvents(&event, &game, &switches, &bullet, state, &penalty);
+		if (!switches.save && !switches.load && !switches.ranking && !switches.finish && !switches.start && !switches.controls) driveEvents(&event, &game, &switches, &bullet, state, &penalty);
+		else if (switches.start) starterEvents(surfaces.screen ,&event, &switches, &coords);
+		else if (switches.controls) controlsEvents(&event, &switches, &coords);
 		else if (switches.ranking) rankingEvents(&event, &switches, &coords, &sort, &scroll, sizeOfRanking);
 		else if (switches.finish) finishEvents(surfaces.screen, &event, &switches, &coords, &game, lista, &sizeOfRanking);
-		else saveNloadEvents(&event, &switches, &coords, &toFile, &game);
+		else saveNloadEvents(&event, &switches, &coords, &toFile, &game, &enemy, &civilian);
 		if (!state[RoadSide] && !state[Block]) game.score = (game.distance - penalty) * 22.5 + extraPoints;
 		if ((int)game.worldTime == 30) game.lives = 2;
-		if (game.lives < 2 && game.score > 1000 && game.score % 500 == 0) game.lives = 2;
+		if (game.lives < 2 && game.score > 1000 && (int)game.worldTime % 30 == 0) game.lives = 2;
 	};
 	saveRankings(lista, &sizeOfRanking);
 	saveHRranking(lista, &sizeOfRanking);

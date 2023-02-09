@@ -9,6 +9,58 @@ enum {
 	Block
 };
 
+void starterEvents(SDL_Surface* screen, SDL_Event* event, struct switches* switches, struct coords* coords) {
+	while (SDL_PollEvent(event)) {
+		switch (event->type) {
+		case SDL_KEYDOWN:
+			if (event->key.keysym.sym == SDLK_ESCAPE) switches->quit = true;
+		case SDL_MOUSEMOTION:
+			SDL_GetMouseState(&coords->x, &coords->y);
+			break;
+		case SDL_MOUSEBUTTONDOWN:
+			if (event->button.button == SDL_BUTTON_LEFT) {
+				if (coords->x > screen->w / 4 - 60 && coords->x < screen->w / 4 + 60 && coords->y > screen->h / 3 * 2 + 45 && coords->y < screen->h / 3 * 2 + 65) {
+					switches->start = false;
+					switches->ranking = true;
+				}
+				else if (coords->x > screen->w / 4 * 3 - 60 && coords->x < screen->w / 4 * 3 + 60 && coords->y > screen->h / 3 * 2 + 45 && coords->y < screen->h / 3 * 2 + 65) {
+					switches->start = false;
+					switches->controls = true;
+				}
+				else if (coords->x > screen->w / 2 - 60 && coords->x < screen->w / 2 + 60 && coords->y > screen->h / 3 * 2 + 45 && coords->y < screen->h / 3 * 2 + 65) {
+					switches->start = false;
+				}
+				break;
+			}
+		case SDL_QUIT:
+			switches->quit = true;
+			break;
+		};
+	};
+}
+
+void controlsEvents(SDL_Event* event, struct switches* switches, struct coords* coords) {
+	while (SDL_PollEvent(event)) {
+		switch (event->type) {
+		case SDL_KEYDOWN:
+			if (event->key.keysym.sym == SDLK_ESCAPE) {
+				switches->controls = false;
+				switches->start = true;
+			}
+		case SDL_MOUSEMOTION:
+			SDL_GetMouseState(&coords->x, &coords->y);
+			break;
+		case SDL_MOUSEBUTTONDOWN:
+			if (event->button.button == SDL_BUTTON_LEFT) {
+				break;
+			}
+		case SDL_QUIT:
+			switches->quit = true;
+			break;
+		};
+	};
+}
+
 void driveEvents(SDL_Event* event, struct game* game, struct switches* switches, struct bullet *bullet, bool state[6], double* penalty) {
 	while (SDL_PollEvent(event)) {
 		switch (event->type) {
@@ -44,7 +96,6 @@ void driveEvents(SDL_Event* event, struct game* game, struct switches* switches,
 			}
 			else if (event->key.keysym.sym == SDLK_s) switches->save = true;
 			else if (event->key.keysym.sym == SDLK_l) switches->load = true;
-			else if (event->key.keysym.sym == SDLK_r) switches->ranking = true;
 			break;
 		case SDL_KEYUP:
 			if (event->key.keysym.sym == SDLK_UP) state[SpeedUp] = false;
@@ -59,7 +110,7 @@ void driveEvents(SDL_Event* event, struct game* game, struct switches* switches,
 	}
 }
 
-void saveNloadEvents(SDL_Event* event, struct switches* switches, struct coords* coords, struct toFile* toFile, struct game* game) {
+void saveNloadEvents(SDL_Event* event, struct switches* switches, struct coords* coords, struct toFile* toFile, struct game* game, struct enemy* enemy, struct civilian* civilian) {
 	static char saving1[128];
 	static char saving2[128];
 	static char saving3[128];
@@ -80,27 +131,27 @@ void saveNloadEvents(SDL_Event* event, struct switches* switches, struct coords*
 				time(&czas);
 				cur_time = localtime(&czas);
 				if (coords->x > 170 && coords->x < 470 && coords->y>72 && coords->y < 172) {
-					if (switches->load && toFile->slot1 != "Pusty1") loadFile(game, 1);
+					if (switches->load && toFile->slot1 != "Empty1") loadFile(game, 1, enemy, civilian);
 					else if (switches->save) {
 						strftime(saving1, sizeof(saving1), "%x-%X", cur_time);
 						toFile->slot1 = saving1;
-						saveFile(game, 1, toFile);
+						saveFile(game, 1, toFile, enemy, civilian);
 					}
 				}
 				if (coords->x > 170 && coords->x < 470 && coords->y>208 && coords->y < 308) {
-					if (switches->load && toFile->slot2 != "Pusty2") loadFile(game, 2);
+					if (switches->load && toFile->slot2 != "Empty2") loadFile(game, 2, enemy, civilian);
 					else if (switches->save) {
 						strftime(saving2, sizeof(saving2), "%x-%X", cur_time);
 						toFile->slot2 = saving2;
-						saveFile(game, 2, toFile);
+						saveFile(game, 2, toFile, enemy, civilian);
 					}
 				}
 				if (coords->x > 170 && coords->x < 470 && coords->y>344 && coords->y < 444) {
-					if (switches->load && toFile->slot3 != "Pusty3") loadFile(game, 3);
+					if (switches->load && toFile->slot3 != "Empty3") loadFile(game, 3, enemy, civilian);
 					else if (switches->save) {
 						strftime(saving3, sizeof(saving3), "%x-%X", cur_time);
 						toFile->slot3 = saving3;
-						saveFile(game, 3, toFile);
+						saveFile(game, 3, toFile, enemy, civilian);
 					}
 				}
 				switches->save = false;
@@ -118,7 +169,10 @@ void rankingEvents(SDL_Event* event, struct switches* switches, struct coords* c
 	while (SDL_PollEvent(event)) {
 		switch (event->type) {
 		case SDL_KEYDOWN:
-			if (event->key.keysym.sym == SDLK_ESCAPE) switches->ranking = false;
+			if (event->key.keysym.sym == SDLK_ESCAPE) {
+				switches->ranking = false;
+				switches->start = true;
+			}
 			else if (event->key.keysym.sym == SDLK_p) *sort = 1;
 			else if (event->key.keysym.sym == SDLK_t) *sort = 2;
 		case SDL_MOUSEMOTION:
@@ -142,16 +196,6 @@ void finishEvents(SDL_Surface* screen, SDL_Event* event, struct switches* switch
 		switch (event->type) {
 		case SDL_KEYDOWN:
 			if (event->key.keysym.sym == SDLK_ESCAPE) switches->quit = true;
-			else if (event->key.keysym.sym == SDLK_n) {
-				game->score = 0;
-				game->distance = 0;
-				game->worldTime = 0;
-				switches->finish = false;
-				switches->pause = false;
-				game->temp = 0.0;
-				game->lives = 1000;
-				startBoard(game->plansza);
-			}
 		case SDL_MOUSEMOTION:
 			SDL_GetMouseState(&coords->x, &coords->y);
 			break;
