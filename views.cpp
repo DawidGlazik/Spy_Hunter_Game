@@ -46,6 +46,7 @@ void controlsView(struct surfaces* surfaces, struct colors* colors) {
 	int height = SCREEN_HEIGHT - 120;
 	SDL_ShowCursor(1);
 	SDL_FillRect(surfaces->screen, NULL, colors->szary);
+	DrawSurface(surfaces->screen, surfaces->controls, surfaces->screen->w / 2, 40);
 	DrawLine(surfaces->screen, 100, 80, height, 0, 1, colors->ciemny_zielony);
 	DrawLine(surfaces->screen, 100, SCREEN_HEIGHT - 40, width, 1, 0, colors->ciemny_zielony);
 	DrawLine(surfaces->screen, SCREEN_WIDTH - 100, 80, height, 0, 1, colors->ciemny_zielony);
@@ -125,11 +126,12 @@ void finishView(struct surfaces* surfaces, int score, struct colors* colors, str
 	DrawString(surfaces->screen, surfaces->screen->w / 2 - 40 - strlen(text), surfaces->screen->h / 2 + 26, text, surfaces->charset);
 }
 
-void saveLoadView(struct surfaces* surfaces, struct colors* colors, struct toFile* toFile, struct coords* coords, SDL_Event* event) {
+void saveLoadView(struct surfaces* surfaces, struct colors* colors, struct toFile* toFile, struct coords* coords, SDL_Event* event, int option) {
 	char text[128];
 	SDL_ShowCursor(1);
 	SDL_FillRect(surfaces->screen, NULL, colors->szary);
-	DrawSurface(surfaces->screen, surfaces->saveNload, SCREEN_WIDTH / 2, 36);
+	if (option == 1) DrawSurface(surfaces->screen, surfaces->save, SCREEN_WIDTH / 2, 36);
+	else DrawSurface(surfaces->screen, surfaces->load, SCREEN_WIDTH / 2, 36);
 	if (coords->x > 170 && coords->x < 470 && coords->y>72 && coords->y < 172) {
 		DrawRectangle(surfaces->screen, SCREEN_WIDTH / 2 - 150, 72, 300, 100, colors->czerwony, colors->jasny_niebieski);
 	}

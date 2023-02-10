@@ -126,7 +126,7 @@ void endProgram(struct surfaces *surfaces) {
 	SDL_FreeSurface(surfaces->pauza);
 	SDL_FreeSurface(surfaces->player);
 	SDL_FreeSurface(surfaces->ranking);
-	SDL_FreeSurface(surfaces->saveNload);
+	SDL_FreeSurface(surfaces->save);
 	SDL_FreeSurface(surfaces->powerUp);
 	SDL_FreeSurface(surfaces->pistol);
 	SDL_FreeSurface(surfaces->rifle);
@@ -275,8 +275,11 @@ void setBMPs(struct surfaces* surfaces) {
 	surfaces->pauza = SDL_LoadBMP("images/pauza.bmp");
 	loadPicture(surfaces->pauza, surfaces);
 
-	surfaces->saveNload = SDL_LoadBMP("images/Save.bmp");
-	loadPicture(surfaces->saveNload, surfaces);
+	surfaces->save = SDL_LoadBMP("images/Save.bmp");
+	loadPicture(surfaces->save, surfaces);
+
+	surfaces->load = SDL_LoadBMP("images/load.bmp");
+	loadPicture(surfaces->load, surfaces);
 
 	surfaces->ranking = SDL_LoadBMP("images/ranking.bmp");
 	loadPicture(surfaces->ranking, surfaces);
@@ -301,6 +304,9 @@ void setBMPs(struct surfaces* surfaces) {
 
 	surfaces->bullet = SDL_LoadBMP("images/bullet.bmp");
 	loadPicture(surfaces->bullet, surfaces);
+
+	surfaces->controls = SDL_LoadBMP("images/controls.bmp");
+	loadPicture(surfaces->controls, surfaces);
 }
 
 void UploadSavesList(const struct toFile* toFile, int sizeOfRanking) {

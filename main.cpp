@@ -88,8 +88,8 @@ int main(int argc, char **argv) {
 		if (switches.start) startView(&surfaces, &colors, &coords);
 		if (switches.controls) controlsView(&surfaces, &colors);
 		if (switches.finish) finishView(&surfaces, game.score, &colors, &coords);
-		if (switches.save) saveLoadView(&surfaces, &colors, &toFile, &coords, &event);
-		if (switches.load) saveLoadView(&surfaces, &colors, &toFile, &coords, &event);
+		if (switches.save) saveLoadView(&surfaces, &colors, &toFile, &coords, &event, 1);
+		if (switches.load) saveLoadView(&surfaces, &colors, &toFile, &coords, &event, 2);
 		if (switches.ranking) rankingView(&surfaces, &colors, &sort, lista, sizeOfRanking, &scroll);
 		refresh(&surfaces);
 		if (!switches.save && !switches.load && !switches.ranking && !switches.finish && !switches.start && !switches.controls) driveEvents(&event, &game, &switches, &bullet, state, &penalty);

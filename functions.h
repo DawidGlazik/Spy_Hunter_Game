@@ -73,7 +73,8 @@ struct surfaces {
 	SDL_Surface* charset;
 	SDL_Surface* player;
 	SDL_Surface* pauza;
-	SDL_Surface* saveNload;
+	SDL_Surface* save;
+	SDL_Surface* load;
 	SDL_Surface* ranking;
 	SDL_Surface* powerUp;
 	SDL_Surface* pistol;
@@ -82,6 +83,7 @@ struct surfaces {
 	SDL_Surface* enemy;
 	SDL_Surface* civilian;
 	SDL_Surface* bullet;
+	SDL_Surface* controls;
 	SDL_Texture* scrtex;
 	SDL_Window* window;
 	SDL_Renderer* renderer;
