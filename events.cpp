@@ -82,6 +82,7 @@ void driveEvents(SDL_Event* event, struct game* game, struct switches* switches,
 				game->worldTime = 0;
 				switches->finish = false;
 				switches->pause = false;
+				switches->start = true;
 				game->temp = 0.0;
 				game->lives = 1000;
 				*penalty = 0.0;

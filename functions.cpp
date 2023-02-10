@@ -134,6 +134,9 @@ void endProgram(struct surfaces *surfaces) {
 	SDL_FreeSurface(surfaces->enemy);
 	SDL_FreeSurface(surfaces->civilian);
 	SDL_FreeSurface(surfaces->bullet);
+	SDL_FreeSurface(surfaces->controls);
+	SDL_FreeSurface(surfaces->load);
+	SDL_FreeSurface(surfaces->starter);
 	SDL_DestroyTexture(surfaces->scrtex);
 	SDL_DestroyRenderer(surfaces->renderer);
 	SDL_DestroyWindow(surfaces->window);
