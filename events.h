@@ -5,7 +5,7 @@ void starterEvents(SDL_Surface* screen, SDL_Event* event, struct switches* switc
 
 void controlsEvents(SDL_Event* event, struct switches* switches, struct coords* coords);
 
-void driveEvents(SDL_Event* event, struct game* game, struct switches* switches, struct bullet *bullet, bool state[6], double* penalty);
+void driveEvents(SDL_Event* event, struct game* game, struct switches* switches, struct bullet *bullet, bool state[6], struct enemy* enemy, struct civilian* civilian);
 
 void saveNloadEvents(SDL_Event* event, struct switches* switches, struct coords* coords, struct toFile* toFile, struct game* game, struct enemy* enemy, struct civilian* civilian);
 

@@ -61,7 +61,7 @@ void controlsEvents(SDL_Event* event, struct switches* switches, struct coords* 
 	};
 }
 
-void driveEvents(SDL_Event* event, struct game* game, struct switches* switches, struct bullet *bullet, bool state[6], double* penalty) {
+void driveEvents(SDL_Event* event, struct game* game, struct switches* switches, struct bullet *bullet, bool state[6], struct enemy* enemy, struct civilian* civilian) {
 	while (SDL_PollEvent(event)) {
 		switch (event->type) {
 		case SDL_KEYDOWN:
@@ -85,7 +85,10 @@ void driveEvents(SDL_Event* event, struct game* game, struct switches* switches,
 				switches->start = true;
 				game->temp = 0.0;
 				game->lives = 1000;
-				*penalty = 0.0;
+				game->gun = 1;
+				game->penalty = 0.0;
+				enemy->onmap = false;
+				civilian->onmap = false;
 				startBoard(game->plansza);
 			}
 			else if (event->key.keysym.sym == SDLK_p) {

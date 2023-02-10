@@ -428,10 +428,10 @@ void saveHRranking(double* lista, int* sizeOfRanking) {
 	}
 }
 
-void calculations(struct game* game, bool state[6], double* delta, double* fpsTimer, double* speed, double* penalty, int* fps, int* frames) {
+void calculations(struct game* game, bool state[6], double* delta, double* fpsTimer, double* speed, int* fps, int* frames) {
 	game->worldTime += *delta;
 	game->distance += *speed * *delta;
-	if (state[RoadSide] || state[Block]) *penalty += *speed * *delta;
+	if (state[RoadSide] || state[Block]) game->penalty += *speed * *delta;
 	*fpsTimer += *delta;
 	if (*fpsTimer > 0.5) {
 		*fps = *frames * 2;

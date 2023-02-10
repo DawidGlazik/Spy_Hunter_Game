@@ -41,6 +41,7 @@ struct game {
 	double worldTime;
 	double distance;
 	double temp;
+	double penalty;
 	int lives;
 	int gun;	//1-pistol, 2-rifle, 3-sniper
 };
@@ -145,7 +146,7 @@ void moving(struct game* game, bool state[6], double* speed);		//car movement
 
 void sortArray(double* lista, int sizeOfRanking, int option);
 
-void calculations(struct game* game, bool state[6], double* delta, double* fpsTimer, double* speed, double* penalty, int* fps, int* frames);
+void calculations(struct game* game, bool state[6], double* delta, double* fpsTimer, double* speed, int* fps, int* frames);
 
 void bullets(struct game* game, struct bullet *bullet);
 
